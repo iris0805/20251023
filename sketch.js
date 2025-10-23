@@ -1,7 +1,8 @@
-// =================================================================
 // 步驟一：模擬成績數據接收
 // -----------------------------------------------------------------
 
+
+// let scoreText = "成績分數: " + finalScore + "/" + maxScore;
 // 確保這是全域變數
 let finalScore = 0; 
 let maxScore = 0;
@@ -123,43 +124,56 @@ class Firework {
 
 
 window.addEventListener('message', function (event) {
-    const data = event.data;
-    
-    if (data && data.type === 'H5P_SCORE_RESULT') {
-        
+    // 執行來源驗證...
+    // ...
+const data = event.data;
+
+if (data && data.type === 'H5P_SCORE_RESULT') {
+
+        // !!! 關鍵步驟：更新全域變數 !!!
+        finalScore = data.score; // 更新全域變數
         finalScore = data.score;
-        maxScore = data.maxScore;
-        scoreText = `最終成績分數: ${finalScore}/${maxScore}`;
-        
-        console.log("新的分數已接收:", scoreText); 
-        
+maxScore = data.maxScore;
+scoreText = `最終成績分數: ${finalScore}/${maxScore}`;
+
+console.log("新的分數已接收:", scoreText); 
+
+        // ----------------------------------------
+        // 關鍵步驟 2: 呼叫重新繪製 (見方案二)
+        // ----------------------------------------
         // 关键步骤: 接收到新分数时，重置烟火标记并重新绘图
         firework_launched = false; // 确保可以根据新分数重新触发
-        if (typeof redraw === 'function') {
-            redraw(); 
-        }
-    }
-}, false);
+if (typeof redraw === 'function') {
+redraw(); 
+}
+@@ -35,74 +143,101 @@ window.addEventListener('message', function (event) {
 
 
 // =================================================================
+// 步驟二：使用 p5.js 繪製分數 (在網頁 Canvas 上顯示)
 // 步驟三：使用 p5.js 繪製分數 (在網頁 Canvas 上顯示)
 // -----------------------------------------------------------------
 
 function setup() { 
-    createCanvas(windowWidth / 2, windowHeight / 2); 
+    // ... (其他設置)
+createCanvas(windowWidth / 2, windowHeight / 2); 
     colorMode(HSB, 255); // 使用 HSB 颜色模式，方便控制烟火颜色
     gravity = createVector(0, 0.2); // 定义重力
-    background(255); 
+background(255); 
+    noLoop(); // 如果您希望分數只有在改變時才繪製，保留此行
     noLoop(); // 初始设置 noLoop()
 } 
 
+// score_display.js 中的 draw() 函數片段
+
 function draw() { 
+    background(255); // 清除背景
     // 背景，稍微透明以制造烟火拖尾效果
     background(0, 0, 0, 25); // 黑色背景，透明度 25 (只有在触发烟火时才需要这个黑色背景)
 
+    // 計算百分比
     // 计算百分比
-    let percentage = (finalScore / maxScore) * 100;
+let percentage = (finalScore / maxScore) * 100;
     
     // -----------------------------------------------------------------
     // A. 烟火特效触发逻辑
@@ -188,6 +202,8 @@ function draw() {
         }
     }
 
+    textSize(80); 
+    textAlign(CENTER);
     // 更新和显示所有烟火
     for (let i = fireworks.length - 1; i >= 0; i--) {
         fireworks[i].update();
@@ -204,10 +220,11 @@ function draw() {
         noLoop(); 
         background(255);
     }
-    
-    // -----------------------------------------------------------------
+
+// -----------------------------------------------------------------
+    // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
     // B. 分数文本和几何图形显示 (保持原有逻辑)
-    // -----------------------------------------------------------------
+// -----------------------------------------------------------------
     colorMode(RGB); // 切换回 RGB 模式以绘制文本和几何图形
     
     // 如果正在放烟火，文本可以稍微改变颜色或位置，避免被烟火遮盖
@@ -216,28 +233,56 @@ function draw() {
     textSize(80); 
     textAlign(CENTER);
     
-    if (percentage >= 90) {
+if (percentage >= 90) {
+        // 滿分或高分：顯示鼓勵文本，使用鮮豔顏色
+        fill(0, 200, 50); // 綠色 [6]
+        text("恭喜！優異成績！", width / 2, height / 2 - 50);
         fill(255, 255, 0); // 烟火模式下，文字改为黄色更清晰
         text("恭喜！優異成績！", width / 2, height / 2 + textYOffset);
-        
-    } else if (percentage >= 60) {
-        fill(255, 181, 35); 
-        text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
-        
-    } else if (percentage > 0) {
-        fill(200, 0, 0); 
-        text("需要加強努力！", width / 2, height / 2 - 50);
-        
-    } else {
-        fill(150);
-        text(scoreText, width / 2, height / 2);
-    }
 
+} else if (percentage >= 60) {
+        // 中等分數：顯示一般文本，使用黃色 [6]
+fill(255, 181, 35); 
+text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
+
+} else if (percentage > 0) {
+        // 低分：顯示警示文本，使用紅色 [6]
+fill(200, 0, 0); 
+text("需要加強努力！", width / 2, height / 2 - 50);
+
+} else {
+        // 尚未收到分數或分數為 0
+fill(150);
+text(scoreText, width / 2, height / 2);
+}
+
+    // 顯示具體分數
     // 显示具体分数
-    textSize(50);
+textSize(50);
+    fill(50);
+    text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
     fill(200); // 烟火模式下，分数文本改为浅色
     text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50 + textYOffset);
+
+
+    // -----------------------------------------------------------------
+    // B. 根據分數觸發不同的幾何圖形反映 (畫面反映二)
+    // -----------------------------------------------------------------
     
+    if (percentage >= 90) {
+        // 畫一個大圓圈代表完美 [7]
+        fill(0, 200, 50, 150); // 帶透明度
+        noStroke();
+        circle(width / 2, height / 2 + 150, 150);
+        
+    } else if (percentage >= 60) {
+        // 畫一個方形 [4]
+        fill(255, 181, 35, 150);
+        rectMode(CENTER);
+        rect(width / 2, height / 2 + 150, 150, 150);
+    }
     
+    // 如果您想要更複雜的視覺效果，還可以根據分數修改線條粗細 (strokeWeight) 
+    // 或使用 sin/cos 函數讓圖案的動畫效果有所不同 [8, 9]。
     // 几何图形反映 (为了配合烟火，我们在这里省略了几何图形，或者您可以调整它们的位置)
 }
