@@ -57,31 +57,29 @@ function draw() {
     }
     
     // -----------------------------------------------------------------
-    // 5. 分数文本显示 (这是您关注的部分)
+    // 5. 分数文本显示 (位于画布中央偏下)
     // -----------------------------------------------------------------
     
     colorMode(RGB); // 切换回 RGB 模式以绘制文本
     
-    // 调整文本位置和颜色，使其在白色或黑色背景下都清晰可见
-    let mainTextY = height / 2 - 50; 
-    let scoreTextY = height / 2 + 50;
+    // 文本的Y坐标：将其放置在画布中央 (height/2) 附近
+    const mainTextY = height / 2 + 50; 
+    const scoreTextY = height / 2 + 130; 
     
+    // 根据背景模式设置文本颜色
     if (fireworks.length > 0) {
-        // 烟火模式（黑色背景）: 文本使用亮色并稍微上移，避免烟火遮挡
-        mainTextY = height / 2 - 100; 
-        scoreTextY = height / 2 + 0;
-        fill(255, 255, 0); // 亮黄色
+        // 烟火模式（黑色背景）：文本使用亮色
+        fill(255, 255, 0); // 亮黄色 (主文本)
     } else {
-        // 非烟火模式（白色背景）: 文本使用深色
+        // 非烟火模式（白色背景）：文本使用深色
         fill(50);
     }
     
-    // A. 顶部鼓励/提示文本
+    // A. 顶部鼓励/提示文本 (textSize: 80)
     textSize(80); 
     textAlign(CENTER);
     
     if (percentage >= 90) {
-        // 90分以上：文本颜色已经在上方设置为亮黄或绿色
         text("恭喜！優異成績！", width / 2, mainTextY);
         
     } else if (percentage >= 60) {
@@ -97,7 +95,7 @@ function draw() {
         text(scoreText, width / 2, height / 2); // 初始文本
     }
 
-    // B. 具体得分文本 (总是显示在主文本下方)
+    // B. 具体得分文本 (位于下方，textSize: 50)
     textSize(50);
     if (fireworks.length > 0) {
         fill(255); // 烟火模式下，得分数字用白色
@@ -105,21 +103,22 @@ function draw() {
         fill(50); // 非烟火模式下，得分数字用深灰色
     }
     
-    text(`得分: ${finalScore}/${maxScore}`, width / 2, scoreTextY + 50);
+    text(`得分: ${finalScore}/${maxScore}`, width / 2, scoreTextY);
 
     
     // -----------------------------------------------------------------
-    // C. 几何图形反映 (为了简洁和专注于烟火，这里可以省略，或者您保留它们)
+    // 6. 几何图形反映 (仅在非烟火模式下显示)
     // -----------------------------------------------------------------
-    if (percentage >= 90 && fireworks.length === 0) {
-        // 仅在非烟火模式下显示几何图形，避免与烟火重叠
-        fill(0, 200, 50, 150); // 绿色的圆圈
-        noStroke();
-        circle(width / 2, height / 2 + 150, 150);
-        
-    } else if (percentage >= 60 && fireworks.length === 0) {
-        fill(255, 181, 35, 150);
-        rectMode(CENTER);
-        rect(width / 2, height / 2 + 150, 150, 150);
+    if (fireworks.length === 0) {
+        if (percentage >= 90) {
+            fill(0, 200, 50, 150); // 绿色的圆圈
+            noStroke();
+            circle(width / 2, height / 2 - 100, 150); // 放置在画布上半部
+            
+        } else if (percentage >= 60) {
+            fill(255, 181, 35, 150);
+            rectMode(CENTER);
+            rect(width / 2, height / 2 - 100, 150, 150); // 放置在画布上半部
+        }
     }
 }
